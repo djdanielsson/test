@@ -1,0 +1,4 @@
+---
+- name: Test from x2a pipeline
+  ansible.builtin.debug:
+    msg: "x2a migration test"
