@@ -1,0 +1,54 @@
+- name: Install nginx packages
+  ansible.builtin.package:
+    name: '{{ nginx_packages[ansible_facts[''os_family'']] }}'
+    state: present
+  when: ansible_facts['os_family'] in nginx_packages
+- name: Create nginx configuration directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: directory
+    mode: '0755'
+  loop:
+  - /etc/nginx
+  - /etc/nginx/conf.d
+  - /etc/nginx/sites-available
+  - /etc/nginx/sites-enabled
+- name: Deploy nginx main configuration
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    mode: '0644'
+    validate: nginx -t -c %s
+  notify: reload nginx
+- name: Deploy nginx security configuration
+  ansible.builtin.template:
+    src: security.conf.j2
+    dest: /etc/nginx/conf.d/security.conf
+    mode: '0644'
+  notify: reload nginx
+- name: Create document root directories
+  ansible.builtin.file:
+    path: '{{ item.document_root }}'
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  loop: '{{ sites }}'
+- name: Deploy static index.html files
+  ansible.builtin.copy:
+    src: '{{ item.name }}/index.html'
+    dest: '{{ item.document_root }}/index.html'
+    owner: www-data
+    group: www-data
+    mode: '0644'
+  loop: '{{ sites }}'
+  when: item.name in document_root_content
+- name: Remove default site configuration
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+- name: Start and enable nginx
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true

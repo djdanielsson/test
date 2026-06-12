@@ -1,0 +1,10 @@
+name             'fastapi-tutorial'
+maintainer       'Chef Example'
+maintainer_email 'admin@example.com'
+license          'Apache-2.0'
+description      'Configures FastAPI tutorial application with PostgreSQL'
+version          '1.0.0'
+chef_version     '>= 16.0'
+
+supports 'ubuntu', '>= 18.04'
+supports 'centos', '>= 7.0'

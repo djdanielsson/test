@@ -1,0 +1,63 @@
+- name: Install fail2ban packages
+  ansible.builtin.package:
+    name: '{{ fail2ban_packages[ansible_facts[''os_family'']] }}'
+    state: present
+  when: ansible_facts['os_family'] in fail2ban_packages
+- name: Deploy fail2ban jail configuration
+  ansible.builtin.template:
+    src: fail2ban.jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    mode: '0640'
+    owner: root
+    group: root
+  notify: restart fail2ban
+- name: Enable and start fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: true
+- name: Install UFW
+  ansible.builtin.package:
+    name: ufw
+    state: present
+- name: Set UFW default policy incoming deny
+  ansible.builtin.command: ufw default deny incoming
+  changed_when: '''Altered'' in result.stdout or ''set'' in result.stdout'
+  register: result
+  when: ufw_enabled
+- name: Set UFW default policy outgoing allow
+  ansible.builtin.command: ufw default allow outgoing
+  changed_when: '''Altered'' in result.stdout or ''set'' in result.stdout'
+  register: result
+  when: ufw_enabled
+- name: Allow SSH through UFW
+  ansible.builtin.command: ufw allow ssh
+  changed_when: '''Altered'' in result.stdout or ''set'' in result.stdout'
+  register: result
+  when: ufw_enabled
+- name: Allow HTTP through UFW
+  ansible.builtin.command: ufw allow http
+  changed_when: '''Altered'' in result.stdout or ''set'' in result.stdout'
+  register: result
+  when: ufw_enabled
+- name: Allow HTTPS through UFW
+  ansible.builtin.command: ufw allow https
+  changed_when: '''Altered'' in result.stdout or ''set'' in result.stdout'
+  register: result
+  when: ufw_enabled
+- name: Enable UFW
+  ansible.builtin.command: ufw --force enable
+  changed_when: '''Altered'' in result.stdout or ''set'' in result.stdout'
+  register: result
+  when: ufw_enabled
+- name: Deploy sysctl security configuration
+  ansible.builtin.template:
+    src: sysctl-security.conf.j2
+    dest: /etc/sysctl.d/99-security.conf
+    mode: '0600'
+    owner: root
+    group: root
+- name: Apply sysctl settings
+  ansible.builtin.command: sysctl -p /etc/sysctl.d/99-security.conf
+  changed_when: true
+  when: ansible_facts['os_family'] == 'Debian'

@@ -1,0 +1,137 @@
+{
+  "phase": "migrate",
+  "started_at": "2026-06-12T19:26:06.682788",
+  "ended_at": "2026-06-12T20:48:26.082647",
+  "duration_seconds": 4939.399859,
+  "agents": {
+    "AAP Collection Discovery": {
+      "name": "AAP Collection Discovery",
+      "started_at": "2026-06-12T19:26:06.685190",
+      "ended_at": "2026-06-12T19:26:06.685280",
+      "duration_seconds": 9e-05,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "metrics": {},
+      "tool_calls": {}
+    },
+    "Credential Extractor": {
+      "name": "Credential Extractor",
+      "started_at": "2026-06-12T19:26:06.685939",
+      "ended_at": "2026-06-12T19:29:40.693772",
+      "duration_seconds": 214.007833,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "metrics": {},
+      "tool_calls": {}
+    },
+    "Export Planner": {
+      "name": "Export Planner",
+      "started_at": "2026-06-12T19:29:40.694514",
+      "ended_at": "2026-06-12T19:31:23.805345",
+      "duration_seconds": 103.110831,
+      "input_tokens": 56897,
+      "output_tokens": 4415,
+      "metrics": {},
+      "tool_calls": {
+        "list_checklist_tasks": 2,
+        "add_checklist_task": 23,
+        "get_checklist_summary": 1
+      }
+    },
+    "Ansible Role Writer": {
+      "name": "Ansible Role Writer",
+      "started_at": "2026-06-12T19:31:23.806170",
+      "ended_at": "2026-06-12T20:03:36.217497",
+      "duration_seconds": 1932.411327,
+      "input_tokens": 402419,
+      "output_tokens": 51046,
+      "metrics": {
+        "attempts": 4,
+        "complete": true,
+        "files_created": 1,
+        "files_total": 23
+      },
+      "tool_calls": {
+        "ansible_write": 7,
+        "update_checklist_task": 16,
+        "list_checklist_tasks": 3,
+        "read_file": 55,
+        "list_directory": 21,
+        "write_file": 3
+      }
+    },
+    "Molecule Test Generator": {
+      "name": "Molecule Test Generator",
+      "started_at": "2026-06-12T20:03:36.218478",
+      "ended_at": "2026-06-12T20:25:14.994060",
+      "duration_seconds": 1298.775582,
+      "input_tokens": 247257,
+      "output_tokens": 21892,
+      "metrics": {
+        "attempts": 1,
+        "complete": true
+      },
+      "tool_calls": {
+        "read_file": 10,
+        "write_file": 2,
+        "update_checklist_task": 4,
+        "list_checklist_tasks": 1,
+        "get_checklist_summary": 1
+      }
+    },
+    "ReviewAgent": {
+      "name": "ReviewAgent",
+      "started_at": "2026-06-12T20:25:14.994898",
+      "ended_at": "2026-06-12T20:41:51.661159",
+      "duration_seconds": 996.666261,
+      "input_tokens": 216626,
+      "output_tokens": 26663,
+      "metrics": {},
+      "tool_calls": {
+        "read_file": 18,
+        "list_directory": 2,
+        "ansible_write": 1,
+        "write_file": 4
+      }
+    },
+    "Ansible Lint Validator": {
+      "name": "Ansible Lint Validator",
+      "started_at": "2026-06-12T20:41:51.662047",
+      "ended_at": "2026-06-12T20:48:26.081317",
+      "duration_seconds": 394.41927,
+      "input_tokens": 82900,
+      "output_tokens": 17867,
+      "metrics": {
+        "validators_passed": [
+          "role-check"
+        ],
+        "validators_failed": [
+          "ansible-lint"
+        ],
+        "attempts": 1,
+        "complete": false,
+        "has_errors": true
+      },
+      "tool_calls": {
+        "list_directory": 6,
+        "list_checklist_tasks": 1,
+        "read_file": 15,
+        "ansible_lint": 2,
+        "ansible_role_check": 1
+      }
+    }
+  },
+  "total_tool_calls": {
+    "list_checklist_tasks": 7,
+    "add_checklist_task": 23,
+    "get_checklist_summary": 2,
+    "ansible_write": 8,
+    "update_checklist_task": 20,
+    "read_file": 98,
+    "list_directory": 29,
+    "write_file": 9,
+    "ansible_lint": 2,
+    "ansible_role_check": 1
+  },
+  "summary": "MIGRATION FAILED for nginx_multisite\n\nFailure Reason:\n  Stall detected after 1 attempt(s): errors unchanged between attempts, aborting.\nErrors remain:\n## ansible-lint Errors\n```\nFound 1 ansible-lint issue(s):\n[VERY_HIGH] .:1 [internal-error] ERROR: running ansible-lint:\n```[Errno 2] No such file or directory: 'ansible-config'``` ()\n\n==============================\nRule Hints (How to Fix):\n==============================\n[internal-error] ERROR: running ansible-lint:\n```[Errno 2] No such file or directory: 'ansible-config'```\n  Description: ERROR: running ansible-lint:\n```[Errno 2] No such file or directory: 'ansible-config'```\n```\n\nMigration Summary:\n  Total items: 23\n  Completed: 6\n  Pending: 9\n  Missing: 8\n  Errors: 0\n  Write attempts: 4\n  Validation attempts: 1\n\nPartial Validation Report:\nValidation incomplete after 1 attempts:\n## ansible-lint Errors\n```\nFound 1 ansible-lint issue(s):\n[VERY_HIGH] .:1 [internal-error] ERROR: running ansible-lint:\n```[Errno 2] No such file or directory: 'ansible-config'``` ()\n\n==============================\nRule Hints (How to Fix):\n==============================\n[internal-error] ERROR: running ansible-lint:\n```[Errno 2] No such file or directory: 'ansible-config'```\n  Description: ERROR: running ansible-lint:\n```[Errno 2] No such file or directory: 'ansible-config'```\n```\n\nPartial Checklist:\n## Checklist: nginx_multisite\n\n### Templates\n- [ ] cookbooks/nginx-multisite/templates/default/fail2ban.jail.local.erb \u2192 ansible/roles/nginx_multisite/templates/fail2ban.jail.local.j2 (pending)\n- [ ] cookbooks/nginx-multisite/templates/default/nginx.conf.erb \u2192 ansible/roles/nginx_multisite/templates/nginx.conf.j2 (pending)\n- [ ] cookbooks/nginx-multisite/templates/default/site.conf.erb \u2192 ansible/roles/nginx_multisite/templates/site.conf.j2 (pending)\n- [ ] cookbooks/nginx-multisite/templates/default/security.conf.erb \u2192 ansible/roles/nginx_multisite/templates/security.conf.j2 (pending)\n- [ ] cookbooks/nginx-multisite/templates/default/sysctl-security.conf.erb \u2192 ansible/roles/nginx_multisite/templates/sysctl-security.conf.j2 (pending)\n\n### Recipes \u2192 Tasks\n- [ ] cookbooks/nginx-multisite/recipes/nginx.rb \u2192 ansible/roles/nginx_multisite/tasks/nginx.yml (missing)\n- [ ] cookbooks/nginx-multisite/recipes/security.rb \u2192 ansible/roles/nginx_multisite/tasks/security.yml (missing)\n- [ ] cookbooks/nginx-multisite/recipes/ssl.rb \u2192 ansible/roles/nginx_multisite/tasks/ssl.yml (missing)\n- [ ] cookbooks/nginx-multisite/recipes/sites.rb \u2192 ansible/roles/nginx_multisite/tasks/sites.yml (pending)\n- [ ] cookbooks/nginx-multisite/recipes/default.rb \u2192 ansible/roles/nginx_multisite/tasks/default.yml (missing)\n\n### Attributes \u2192 Variables\n- [ ] cookbooks/nginx-multisite/attributes/default.rb \u2192 ansible/roles/nginx_multisite/defaults/main.yml (pending)\n\n### Static Files\n- [ ] cookbooks/nginx-multisite/files/ci/index.html \u2192 ansible/roles/nginx_multisite/files/ci/index.html (missing)\n- [ ] cookbooks/nginx-multisite/files/test/index.html \u2192 ansible/roles/nginx_multisite/files/test/index.html (missing)\n- [ ] cookbooks/nginx-multisite/files/status/index.html \u2192 ansible/roles/nginx_multisite/files/status/index.html (missing)\n\n### Structure Files\n- [x] N/A \u2192 ansible/roles/nginx_multisite/meta/main.yml (complete) - Created standard meta/main.yml\n- [ ] N/A \u2192 ansible/roles/nginx_multisite/defaults/main.yml (pending)\n- [ ] N/A \u2192 ansible/roles/nginx_multisite/handlers/main.yml (missing)\n- [ ] N/A \u2192 ansible/roles/nginx_multisite/tasks/main.yml (pending)\n\n### Molecule Testing\n- [x] N/A \u2192 ansible/roles/nginx_multisite/molecule/default/converge.yml (complete) - Generated converge.yml with all expected directory structures, config files, SSL certificates, document roots, and static content under /tmp/molecule_test/. No become, no include_role, no prepare.yml. All paths use /tmp/molecule_test/ prefix.\n- [x] N/A \u2192 ansible/roles/nginx_multisite/molecule/default/molecule.yml (complete) - Created by MoleculeAgent (deterministic scaffold)\n- [x] N/A \u2192 ansible/roles/nginx_multisite/molecule/default/create.yml (complete) - Created by MoleculeAgent (deterministic scaffold)\n- [x] N/A \u2192 ansible/roles/nginx_multisite/molecule/default/verify.yml (complete) - Generated verify.yml with 22 verification sections covering: nginx.conf directives, security.conf settings, all 3 site configs (server_name, document_root, SSL paths, HSTS, security headers, gzip, try_files, log paths), symlinks in sites-enabled, default site removal, fail2ban jail settings, sysctl hardening, SSH hardening, SSL cert/key existence and permissions, document root existence and permissions, index.html content, log file existence, service_facts for nginx/fail2ban, and container-safe URI checks for HTTP redirect and HTTPS access (tagged molecule-notest).\n- [x] N/A \u2192 ansible/roles/nginx_multisite/molecule/default/destroy.yml (complete) - Created by MoleculeAgent (deterministic scaffold)\n\n\nTelemetry:\nPhase: migrate\nDuration: 0.00s\n\nAgent Metrics:\n  AAP Collection Discovery: 0.00s\n  Credential Extractor: 214.01s\n  Export Planner: 103.11s\n    Tokens: 56897 in, 4415 out\n    Tools: add_checklist_task: 23, get_checklist_summary: 1, list_checklist_tasks: 2\n  Ansible Role Writer: 1932.41s\n    Tokens: 402419 in, 51046 out\n    Tools: ansible_write: 7, list_checklist_tasks: 3, list_directory: 21, read_file: 55, update_checklist_task: 16, write_file: 3\n    attempts: 4\n    complete: True\n    files_created: 1\n    files_total: 23\n  Molecule Test Generator: 1298.78s\n    Tokens: 247257 in, 21892 out\n    Tools: get_checklist_summary: 1, list_checklist_tasks: 1, read_file: 10, update_checklist_task: 4, write_file: 2\n    attempts: 1\n    complete: True\n  ReviewAgent: 996.67s\n    Tokens: 216626 in, 26663 out\n    Tools: ansible_write: 1, list_directory: 2, read_file: 18, write_file: 4\n  Ansible Lint Validator: 394.42s\n    Tokens: 82900 in, 17867 out\n    Tools: ansible_lint: 2, ansible_role_check: 1, list_checklist_tasks: 1, list_directory: 6, read_file: 15\n    validators_passed: ['role-check']\n    validators_failed: ['ansible-lint']\n    attempts: 1\n    complete: False\n    has_errors: True"
+}
