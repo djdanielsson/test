@@ -1,8 +1,17 @@
-- name: Include security configuration tasks
+---
+- name: "security | Include security configuration tasks"
   ansible.builtin.include_tasks: security.yml
 - name: Include nginx installation tasks
-  ansible.builtin.include_tasks: nginx.yml
+  ansible.builtin.include_tasks:
+    file: nginx.yml
+    apply:
+      tags: always
+  # noqa: L084
 - name: Include SSL certificate tasks
-  ansible.builtin.include_tasks: ssl.yml
+  ansible.builtin.include_tasks:
+    file: ssl.yml
+    apply:
+      tags: always
+  # noqa: L084
 - name: Include site configuration tasks
   ansible.builtin.include_tasks: sites.yml

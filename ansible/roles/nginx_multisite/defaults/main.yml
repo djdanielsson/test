@@ -1,22 +1,23 @@
+---
 sites:
-- name: test
-  server_name: test.cluster.local
-  document_root: /opt/server/test
-  ssl_enabled: true
-  cert_file: /etc/ssl/certs/test.cluster.local.crt
-  key_file: /etc/ssl/private/test.cluster.local.key
-- name: ci
-  server_name: ci.cluster.local
-  document_root: /opt/server/ci
-  ssl_enabled: true
-  cert_file: /etc/ssl/certs/ci.cluster.local.crt
-  key_file: /etc/ssl/private/ci.cluster.local.key
-- name: status
-  server_name: status.cluster.local
-  document_root: /opt/server/status
-  ssl_enabled: true
-  cert_file: /etc/ssl/certs/status.cluster.local.crt
-  key_file: /etc/ssl/private/status.cluster.local.key
+  - name: test
+    server_name: test.cluster.local
+    document_root: /opt/server/test
+    ssl_enabled: true
+    cert_file: /etc/ssl/certs/test.cluster.local.crt
+    key_file: /etc/ssl/private/test.cluster.local.key
+  - name: ci
+    server_name: ci.cluster.local
+    document_root: /opt/server/ci
+    ssl_enabled: true
+    cert_file: /etc/ssl/certs/ci.cluster.local.crt
+    key_file: /etc/ssl/private/ci.cluster.local.key
+  - name: status
+    server_name: status.cluster.local
+    document_root: /opt/server/status
+    ssl_enabled: true
+    cert_file: /etc/ssl/certs/status.cluster.local.crt
+    key_file: /etc/ssl/private/status.cluster.local.key
 nginx_worker_processes: auto
 nginx_worker_connections: 768
 nginx_keepalive_timeout: 65
@@ -56,36 +57,36 @@ sysctl_config:
   net.ipv4.tcp_syn_retries: 5
 nginx_packages:
   Debian:
-  - nginx
-  - nginx-common
-  - nginx-core
+    - nginx
+    - nginx-common
+    - nginx-core
   RedHat:
-  - nginx
+    - nginx
 fail2ban_packages:
   Debian:
-  - fail2ban
-  - fail2ban-systemd
+    - fail2ban
+    - fail2ban-systemd
   RedHat:
-  - fail2ban
+    - fail2ban
 ssl_packages:
   Debian:
-  - openssl
-  - ca-certificates
+    - openssl
+    - ca-certificates
   RedHat:
-  - openssl
-  - ca-certificates
+    - openssl
+    - ca-certificates
 ufw_enabled: true
 ufw_default_policy: deny
 ufw_rules:
-- port: 22
-  proto: tcp
-  comment: SSH
-- port: 80
-  proto: tcp
-  comment: HTTP
-- port: 443
-  proto: tcp
-  comment: HTTPS
+  - port: 22
+    proto: tcp
+    comment: SSH
+  - port: 80
+    proto: tcp
+    comment: HTTP
+  - port: 443
+    proto: tcp
+    comment: HTTPS
 document_root_content:
   test: test
   ci: ci
