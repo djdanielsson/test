@@ -1,0 +1,1527 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  tasks:
+    # ============================================================
+    # 1. Verify nginx configuration files exist and have correct content
+    # ============================================================
+    - name: Verify nginx.conf exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/nginx/nginx.conf
+      register: nginx_conf_stat
+      tags:
+        - verify
+
+    - name: Assert nginx.conf exists
+      ansible.builtin.assert:
+        that:
+          - nginx_conf_stat.stat.exists
+        fail_msg: "nginx.conf does not exist"
+        success_msg: "nginx.conf exists"
+      tags:
+        - verify
+
+    - name: Verify nginx.conf contains expected directives
+      ansible.builtin.slurp:
+        src: /tmp/molecule_test/etc/nginx/nginx.conf
+      register: nginx_conf_content
+      tags:
+        - verify
+
+    - name: Assert nginx.conf has correct worker_processes
+      ansible.builtin.assert:
+        that:
+          - "'worker_processes auto' in (nginx_conf_content.content | b64decode)"
+        fail_msg: "nginx.conf does not contain 'worker_processes auto'"
+        success_msg: "nginx.conf has correct worker_processes"
+      tags:
+        - verify
+
+    - name: Assert nginx.conf has correct worker_connections
+      ansible.builtin.assert:
+        that:
+          - "'worker_connections 768' in (nginx_conf_content.content | b64decode)"
+        fail_msg: "nginx.conf does not contain 'worker_connections 768'"
+        success_msg: "nginx.conf has correct worker_connections"
+      tags:
+        - verify
+
+    - name: Assert nginx.conf has correct keepalive_timeout
+      ansible.builtin.assert:
+        that:
+          - "'keepalive_timeout 65' in (nginx_conf_content.content | b64decode)"
+        fail_msg: "nginx.conf does not contain 'keepalive_timeout 65'"
+        success_msg: "nginx.conf has correct keepalive_timeout"
+      tags:
+        - verify
+
+    - name: Assert nginx.conf includes sites-enabled
+      ansible.builtin.assert:
+        that:
+          - "'include /etc/nginx/sites-enabled/*' in (nginx_conf_content.content | b64decode)"
+        fail_msg: "nginx.conf does not include sites-enabled"
+        success_msg: "nginx.conf includes sites-enabled"
+      tags:
+        - verify
+
+    # ============================================================
+    # 2. Verify security.conf exists and has correct content
+    # ============================================================
+    - name: Verify security.conf exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/nginx/conf.d/security.conf
+      register: security_conf_stat
+      tags:
+        - verify
+
+    - name: Assert security.conf exists
+      ansible.builtin.assert:
+        that:
+          - security_conf_stat.stat.exists
+        fail_msg: "security.conf does not exist"
+        success_msg: "security.conf exists"
+      tags:
+        - verify
+
+    - name: Verify security.conf content
+      ansible.builtin.slurp:
+        src: /tmp/molecule_test/etc/nginx/conf.d/security.conf
+      register: security_conf_content
+      tags:
+        - verify
+
+    - name: Assert security.conf has server_tokens off
+      ansible.builtin.assert:
+        that:
+          - "'server_tokens off' in (security_conf_content.content | b64decode)"
+        fail_msg: "security.conf does not have server_tokens off"
+        success_msg: "security.conf has server_tokens off"
+      tags:
+        - verify
+
+    - name: Assert security.conf has correct SSL protocols
+      ansible.builtin.assert:
+        that:
+          - "'ssl_protocols TLSv1.2 TLSv1.3' in (security_conf_content.content | b64decode)"
+        fail_msg: "security.conf does not have correct SSL protocols"
+        success_msg: "security.conf has correct SSL protocols"
+      tags:
+        - verify
+
+    - name: Assert security.conf has ssl_prefer_server_ciphers on
+      ansible.builtin.assert:
+        that:
+          - "'ssl_prefer_server_ciphers on' in (security_conf_content.content | b64decode)"
+        fail_msg: "security.conf does not have ssl_prefer_server_ciphers on"
+        success_msg: "security.conf has ssl_prefer_server_ciphers on"
+      tags:
+        - verify
+
+    - name: Assert security.conf has rate limiting zones
+      ansible.builtin.assert:
+        that:
+          - "'limit_req_zone' in (security_conf_content.content | b64decode)"
+        fail_msg: "security.conf does not have rate limiting zones"
+        success_msg: "security.conf has rate limiting zones"
+      tags:
+        - verify
+
+    # ============================================================
+    # 3. Verify site configurations exist and have correct content
+    # ============================================================
+    - name: Verify test.cluster.local site config exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/nginx/sites-available/test.cluster.local
+      register: test_site_stat
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local site config exists
+      ansible.builtin.assert:
+        that:
+          - test_site_stat.stat.exists
+        fail_msg: "test.cluster.local site config does not exist"
+        success_msg: "test.cluster.local site config exists"
+      tags:
+        - verify
+
+    - name: Verify test.cluster.local site config content
+      ansible.builtin.slurp:
+        src: /tmp/molecule_test/etc/nginx/sites-available/test.cluster.local
+      register: test_site_content
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local has correct server_name
+      ansible.builtin.assert:
+        that:
+          - "'server_name test.cluster.local' in (test_site_content.content | b64decode)"
+        fail_msg: "test.cluster.local site config has incorrect server_name"
+        success_msg: "test.cluster.local has correct server_name"
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local has correct document_root
+      ansible.builtin.assert:
+        that:
+          - "'root /opt/server/test' in (test_site_content.content | b64decode)"
+        fail_msg: "test.cluster.local site config has incorrect document_root"
+        success_msg: "test.cluster.local has correct document_root"
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local has SSL certificate path
+      ansible.builtin.assert:
+        that:
+          - "'ssl_certificate /etc/ssl/certs/test.cluster.local.crt' in (test_site_content.content | b64decode)"
+        fail_msg: "test.cluster.local site config has incorrect SSL certificate path"
+        success_msg: "test.cluster.local has correct SSL certificate path"
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local has SSL key path
+      ansible.builtin.assert:
+        that:
+          - "'ssl_certificate_key /etc/ssl/private/test.cluster.local.key' in (test_site_content.content | b64decode)"
+        fail_msg: "test.cluster.local site config has incorrect SSL key path"
+        success_msg: "test.cluster.local has correct SSL key path"
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local has HSTS header
+      ansible.builtin.assert:
+        that:
+          - "'Strict-Transport-Security' in (test_site_content.content | b64decode)"
+        fail_msg: "test.cluster.local site config does not have HSTS header"
+        success_msg: "test.cluster.local has HSTS header"
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local has security headers
+      ansible.builtin.assert:
+        that:
+          - "'X-Frame-Options DENY' in (test_site_content.content | b64decode)"
+          - "'X-Content-Type-Options nosniff' in (test_site_content.content | b64decode)"
+          - "'X-XSS-Protection' in (test_site_content.content | b64decode)"
+          - "'Referrer-Policy' in (test_site_content.content | b64decode)"
+          - "'Content-Security-Policy' in (test_site_content.content | b64decode)"
+        fail_msg: "test.cluster.local site config is missing security headers"
+        success_msg: "test.cluster.local has all security headers"
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local has gzip enabled
+      ansible.builtin.assert:
+        that:
+          - "'gzip on' in (test_site_content.content | b64decode)"
+        fail_msg: "test.cluster.local site config does not have gzip enabled"
+        success_msg: "test.cluster.local has gzip enabled"
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local has try_files directive
+      ansible.builtin.assert:
+        that:
+          - "'try_files $uri $uri/ =404' in (test_site_content.content | b64decode)"
+        fail_msg: "test.cluster.local site config does not have try_files directive"
+        success_msg: "test.cluster.local has try_files directive"
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local has .ht access denied
+      ansible.builtin.assert:
+        that:
+          - "'deny all' in (test_site_content.content | b64decode)"
+        fail_msg: "test.cluster.local site config does not deny .ht access"
+        success_msg: "test.cluster.local denies .ht access"
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local has git/svn access denied
+      ansible.builtin.assert:
+        that:
+          - "'deny all' in (test_site_content.content | b64decode)"
+        fail_msg: "test.cluster.local site config does not deny git/svn access"
+        success_msg: "test.cluster.local denies git/svn access"
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local has correct access log path
+      ansible.builtin.assert:
+        that:
+          - "'access_log /var/log/nginx/test.cluster.local_access.log' in (test_site_content.content | b64decode)"
+        fail_msg: "test.cluster.local site config has incorrect access log path"
+        success_msg: "test.cluster.local has correct access log path"
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local has correct error log path
+      ansible.builtin.assert:
+        that:
+          - "'error_log /var/log/nginx/test.cluster.local_error.log' in (test_site_content.content | b64decode)"
+        fail_msg: "test.cluster.local site config has incorrect error log path"
+        success_msg: "test.cluster.local has correct error log path"
+      tags:
+        - verify
+
+    # ============================================================
+    # 4. Verify ci.cluster.local site configuration
+    # ============================================================
+    - name: Verify ci.cluster.local site config exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/nginx/sites-available/ci.cluster.local
+      register: ci_site_stat
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local site config exists
+      ansible.builtin.assert:
+        that:
+          - ci_site_stat.stat.exists
+        fail_msg: "ci.cluster.local site config does not exist"
+        success_msg: "ci.cluster.local site config exists"
+      tags:
+        - verify
+
+    - name: Verify ci.cluster.local site config content
+      ansible.builtin.slurp:
+        src: /tmp/molecule_test/etc/nginx/sites-available/ci.cluster.local
+      register: ci_site_content
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local has correct server_name
+      ansible.builtin.assert:
+        that:
+          - "'server_name ci.cluster.local' in (ci_site_content.content | b64decode)"
+        fail_msg: "ci.cluster.local site config has incorrect server_name"
+        success_msg: "ci.cluster.local has correct server_name"
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local has correct document_root
+      ansible.builtin.assert:
+        that:
+          - "'root /opt/server/ci' in (ci_site_content.content | b64decode)"
+        fail_msg: "ci.cluster.local site config has incorrect document_root"
+        success_msg: "ci.cluster.local has correct document_root"
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local has SSL certificate path
+      ansible.builtin.assert:
+        that:
+          - "'ssl_certificate /etc/ssl/certs/ci.cluster.local.crt' in (ci_site_content.content | b64decode)"
+        fail_msg: "ci.cluster.local site config has incorrect SSL certificate path"
+        success_msg: "ci.cluster.local has correct SSL certificate path"
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local has SSL key path
+      ansible.builtin.assert:
+        that:
+          - "'ssl_certificate_key /etc/ssl/private/ci.cluster.local.key' in (ci_site_content.content | b64decode)"
+        fail_msg: "ci.cluster.local site config has incorrect SSL key path"
+        success_msg: "ci.cluster.local has correct SSL key path"
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local has HSTS header
+      ansible.builtin.assert:
+        that:
+          - "'Strict-Transport-Security' in (ci_site_content.content | b64decode)"
+        fail_msg: "ci.cluster.local site config does not have HSTS header"
+        success_msg: "ci.cluster.local has HSTS header"
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local has security headers
+      ansible.builtin.assert:
+        that:
+          - "'X-Frame-Options DENY' in (ci_site_content.content | b64decode)"
+          - "'X-Content-Type-Options nosniff' in (ci_site_content.content | b64decode)"
+          - "'X-XSS-Protection' in (ci_site_content.content | b64decode)"
+          - "'Referrer-Policy' in (ci_site_content.content | b64decode)"
+          - "'Content-Security-Policy' in (ci_site_content.content | b64decode)"
+        fail_msg: "ci.cluster.local site config is missing security headers"
+        success_msg: "ci.cluster.local has all security headers"
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local has gzip enabled
+      ansible.builtin.assert:
+        that:
+          - "'gzip on' in (ci_site_content.content | b64decode)"
+        fail_msg: "ci.cluster.local site config does not have gzip enabled"
+        success_msg: "ci.cluster.local has gzip enabled"
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local has try_files directive
+      ansible.builtin.assert:
+        that:
+          - "'try_files $uri $uri/ =404' in (ci_site_content.content | b64decode)"
+        fail_msg: "ci.cluster.local site config does not have try_files directive"
+        success_msg: "ci.cluster.local has try_files directive"
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local has correct access log path
+      ansible.builtin.assert:
+        that:
+          - "'access_log /var/log/nginx/ci.cluster.local_access.log' in (ci_site_content.content | b64decode)"
+        fail_msg: "ci.cluster.local site config has incorrect access log path"
+        success_msg: "ci.cluster.local has correct access log path"
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local has correct error log path
+      ansible.builtin.assert:
+        that:
+          - "'error_log /var/log/nginx/ci.cluster.local_error.log' in (ci_site_content.content | b64decode)"
+        fail_msg: "ci.cluster.local site config has incorrect error log path"
+        success_msg: "ci.cluster.local has correct error log path"
+      tags:
+        - verify
+
+    # ============================================================
+    # 5. Verify status.cluster.local site configuration
+    # ============================================================
+    - name: Verify status.cluster.local site config exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/nginx/sites-available/status.cluster.local
+      register: status_site_stat
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local site config exists
+      ansible.builtin.assert:
+        that:
+          - status_site_stat.stat.exists
+        fail_msg: "status.cluster.local site config does not exist"
+        success_msg: "status.cluster.local site config exists"
+      tags:
+        - verify
+
+    - name: Verify status.cluster.local site config content
+      ansible.builtin.slurp:
+        src: /tmp/molecule_test/etc/nginx/sites-available/status.cluster.local
+      register: status_site_content
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local has correct server_name
+      ansible.builtin.assert:
+        that:
+          - "'server_name status.cluster.local' in (status_site_content.content | b64decode)"
+        fail_msg: "status.cluster.local site config has incorrect server_name"
+        success_msg: "status.cluster.local has correct server_name"
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local has correct document_root
+      ansible.builtin.assert:
+        that:
+          - "'root /opt/server/status' in (status_site_content.content | b64decode)"
+        fail_msg: "status.cluster.local site config has incorrect document_root"
+        success_msg: "status.cluster.local has correct document_root"
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local has SSL certificate path
+      ansible.builtin.assert:
+        that:
+          - "'ssl_certificate /etc/ssl/certs/status.cluster.local.crt' in (status_site_content.content | b64decode)"
+        fail_msg: "status.cluster.local site config has incorrect SSL certificate path"
+        success_msg: "status.cluster.local has correct SSL certificate path"
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local has SSL key path
+      ansible.builtin.assert:
+        that:
+          - "'ssl_certificate_key /etc/ssl/private/status.cluster.local.key' in (status_site_content.content | b64decode)"
+        fail_msg: "status.cluster.local site config has incorrect SSL key path"
+        success_msg: "status.cluster.local has correct SSL key path"
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local has HSTS header
+      ansible.builtin.assert:
+        that:
+          - "'Strict-Transport-Security' in (status_site_content.content | b64decode)"
+        fail_msg: "status.cluster.local site config does not have HSTS header"
+        success_msg: "status.cluster.local has HSTS header"
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local has security headers
+      ansible.builtin.assert:
+        that:
+          - "'X-Frame-Options DENY' in (status_site_content.content | b64decode)"
+          - "'X-Content-Type-Options nosniff' in (status_site_content.content | b64decode)"
+          - "'X-XSS-Protection' in (status_site_content.content | b64decode)"
+          - "'Referrer-Policy' in (status_site_content.content | b64decode)"
+          - "'Content-Security-Policy' in (status_site_content.content | b64decode)"
+        fail_msg: "status.cluster.local site config is missing security headers"
+        success_msg: "status.cluster.local has all security headers"
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local has gzip enabled
+      ansible.builtin.assert:
+        that:
+          - "'gzip on' in (status_site_content.content | b64decode)"
+        fail_msg: "status.cluster.local site config does not have gzip enabled"
+        success_msg: "status.cluster.local has gzip enabled"
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local has try_files directive
+      ansible.builtin.assert:
+        that:
+          - "'try_files $uri $uri/ =404' in (status_site_content.content | b64decode)"
+        fail_msg: "status.cluster.local site config does not have try_files directive"
+        success_msg: "status.cluster.local has try_files directive"
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local has correct access log path
+      ansible.builtin.assert:
+        that:
+          - "'access_log /var/log/nginx/status.cluster.local_access.log' in (status_site_content.content | b64decode)"
+        fail_msg: "status.cluster.local site config has incorrect access log path"
+        success_msg: "status.cluster.local has correct access log path"
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local has correct error log path
+      ansible.builtin.assert:
+        that:
+          - "'error_log /var/log/nginx/status.cluster.local_error.log' in (status_site_content.content | b64decode)"
+        fail_msg: "status.cluster.local site config has incorrect error log path"
+        success_msg: "status.cluster.local has correct error log path"
+      tags:
+        - verify
+
+    # ============================================================
+    # 6. Verify symlinks in sites-enabled
+    # ============================================================
+    - name: Verify test.cluster.local symlink exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/nginx/sites-enabled/test.cluster.local
+      register: test_symlink_stat
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local symlink exists and is a link
+      ansible.builtin.assert:
+        that:
+          - test_symlink_stat.stat.exists
+          - test_symlink_stat.stat.islnk
+        fail_msg: "test.cluster.local symlink does not exist or is not a link"
+        success_msg: "test.cluster.local symlink exists and is a link"
+      tags:
+        - verify
+
+    - name: Verify ci.cluster.local symlink exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/nginx/sites-enabled/ci.cluster.local
+      register: ci_symlink_stat
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local symlink exists and is a link
+      ansible.builtin.assert:
+        that:
+          - ci_symlink_stat.stat.exists
+          - ci_symlink_stat.stat.islnk
+        fail_msg: "ci.cluster.local symlink does not exist or is not a link"
+        success_msg: "ci.cluster.local symlink exists and is a link"
+      tags:
+        - verify
+
+    - name: Verify status.cluster.local symlink exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/nginx/sites-enabled/status.cluster.local
+      register: status_symlink_stat
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local symlink exists and is a link
+      ansible.builtin.assert:
+        that:
+          - status_symlink_stat.stat.exists
+          - status_symlink_stat.stat.islnk
+        fail_msg: "status.cluster.local symlink does not exist or is not a link"
+        success_msg: "status.cluster.local symlink exists and is a link"
+      tags:
+        - verify
+
+    # ============================================================
+    # 7. Verify default site is removed
+    # ============================================================
+    - name: Verify default site does not exist
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/nginx/sites-enabled/default
+      register: default_site_stat
+      tags:
+        - verify
+
+    - name: Assert default site does not exist
+      ansible.builtin.assert:
+        that:
+          - not default_site_stat.stat.exists
+        fail_msg: "default site still exists in sites-enabled"
+        success_msg: "default site has been removed"
+      tags:
+        - verify
+
+    # ============================================================
+    # 8. Verify fail2ban configuration
+    # ============================================================
+    - name: Verify fail2ban jail.local exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/fail2ban/jail.local
+      register: fail2ban_jail_stat
+      tags:
+        - verify
+
+    - name: Assert fail2ban jail.local exists
+      ansible.builtin.assert:
+        that:
+          - fail2ban_jail_stat.stat.exists
+        fail_msg: "fail2ban jail.local does not exist"
+        success_msg: "fail2ban jail.local exists"
+      tags:
+        - verify
+
+    - name: Verify fail2ban jail.local content
+      ansible.builtin.slurp:
+        src: /tmp/molecule_test/etc/fail2ban/jail.local
+      register: fail2ban_jail_content
+      tags:
+        - verify
+
+    - name: Assert fail2ban has correct bantime
+      ansible.builtin.assert:
+        that:
+          - "'bantime = 3600' in (fail2ban_jail_content.content | b64decode)"
+        fail_msg: "fail2ban jail.local does not have correct bantime"
+        success_msg: "fail2ban has correct bantime"
+      tags:
+        - verify
+
+    - name: Assert fail2ban has correct findtime
+      ansible.builtin.assert:
+        that:
+          - "'findtime = 600' in (fail2ban_jail_content.content | b64decode)"
+        fail_msg: "fail2ban jail.local does not have correct findtime"
+        success_msg: "fail2ban has correct findtime"
+      tags:
+        - verify
+
+    - name: Assert fail2ban has correct maxretry
+      ansible.builtin.assert:
+        that:
+          - "'maxretry = 3' in (fail2ban_jail_content.content | b64decode)"
+        fail_msg: "fail2ban jail.local does not have correct maxretry"
+        success_msg: "fail2ban has correct maxretry"
+      tags:
+        - verify
+
+    - name: Assert fail2ban has sshd jail enabled
+      ansible.builtin.assert:
+        that:
+          - "'[sshd]' in (fail2ban_jail_content.content | b64decode)"
+          - "'enabled = true' in (fail2ban_jail_content.content | b64decode)"
+        fail_msg: "fail2ban sshd jail is not enabled"
+        success_msg: "fail2ban sshd jail is enabled"
+      tags:
+        - verify
+
+    - name: Assert fail2ban has nginx-http-auth jail enabled
+      ansible.builtin.assert:
+        that:
+          - "'[nginx-http-auth]' in (fail2ban_jail_content.content | b64decode)"
+          - "'enabled = true' in (fail2ban_jail_content.content | b64decode)"
+        fail_msg: "fail2ban nginx-http-auth jail is not enabled"
+        success_msg: "fail2ban nginx-http-auth jail is enabled"
+      tags:
+        - verify
+
+    - name: Assert fail2ban has nginx-limit-req jail enabled
+      ansible.builtin.assert:
+        that:
+          - "'[nginx-limit-req]' in (fail2ban_jail_content.content | b64decode)"
+          - "'enabled = true' in (fail2ban_jail_content.content | b64decode)"
+        fail_msg: "fail2ban nginx-limit-req jail is not enabled"
+        success_msg: "fail2ban nginx-limit-req jail is enabled"
+      tags:
+        - verify
+
+    - name: Assert fail2ban has nginx-botsearch jail enabled
+      ansible.builtin.assert:
+        that:
+          - "'[nginx-botsearch]' in (fail2ban_jail_content.content | b64decode)"
+          - "'enabled = true' in (fail2ban_jail_content.content | b64decode)"
+        fail_msg: "fail2ban nginx-botsearch jail is not enabled"
+        success_msg: "fail2ban nginx-botsearch jail is enabled"
+      tags:
+        - verify
+
+    # ============================================================
+    # 9. Verify sysctl security configuration
+    # ============================================================
+    - name: Verify sysctl security.conf exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/sysctl.d/99-security.conf
+      register: sysctl_conf_stat
+      tags:
+        - verify
+
+    - name: Assert sysctl security.conf exists
+      ansible.builtin.assert:
+        that:
+          - sysctl_conf_stat.stat.exists
+        fail_msg: "sysctl security.conf does not exist"
+        success_msg: "sysctl security.conf exists"
+      tags:
+        - verify
+
+    - name: Verify sysctl security.conf content
+      ansible.builtin.slurp:
+        src: /tmp/molecule_test/etc/sysctl.d/99-security.conf
+      register: sysctl_conf_content
+      tags:
+        - verify
+
+    - name: Assert sysctl has rp_filter enabled
+      ansible.builtin.assert:
+        that:
+          - "'net.ipv4.conf.all.rp_filter = 1' in (sysctl_conf_content.content | b64decode)"
+        fail_msg: "sysctl does not have rp_filter enabled"
+        success_msg: "sysctl has rp_filter enabled"
+      tags:
+        - verify
+
+    - name: Assert sysctl has accept_redirects disabled
+      ansible.builtin.assert:
+        that:
+          - "'net.ipv4.conf.all.accept_redirects = 0' in (sysctl_conf_content.content | b64decode)"
+        fail_msg: "sysctl does not have accept_redirects disabled"
+        success_msg: "sysctl has accept_redirects disabled"
+      tags:
+        - verify
+
+    - name: Assert sysctl has send_redirects disabled
+      ansible.builtin.assert:
+        that:
+          - "'net.ipv4.conf.all.send_redirects = 0' in (sysctl_conf_content.content | b64decode)"
+        fail_msg: "sysctl does not have send_redirects disabled"
+        success_msg: "sysctl has send_redirects disabled"
+      tags:
+        - verify
+
+    - name: Assert sysctl has accept_source_route disabled
+      ansible.builtin.assert:
+        that:
+          - "'net.ipv4.conf.all.accept_source_route = 0' in (sysctl_conf_content.content | b64decode)"
+        fail_msg: "sysctl does not have accept_source_route disabled"
+        success_msg: "sysctl has accept_source_route disabled"
+      tags:
+        - verify
+
+    - name: Assert sysctl has log_martians enabled
+      ansible.builtin.assert:
+        that:
+          - "'net.ipv4.conf.all.log_martians = 1' in (sysctl_conf_content.content | b64decode)"
+        fail_msg: "sysctl does not have log_martians enabled"
+        success_msg: "sysctl has log_martians enabled"
+      tags:
+        - verify
+
+    - name: Assert sysctl has icmp_echo_ignore_all enabled
+      ansible.builtin.assert:
+        that:
+          - "'net.ipv4.icmp_echo_ignore_all = 1' in (sysctl_conf_content.content | b64decode)"
+        fail_msg: "sysctl does not have icmp_echo_ignore_all enabled"
+        success_msg: "sysctl has icmp_echo_ignore_all enabled"
+      tags:
+        - verify
+
+    - name: Assert sysctl has disable_ipv6 enabled
+      ansible.builtin.assert:
+        that:
+          - "'net.ipv6.conf.all.disable_ipv6 = 1' in (sysctl_conf_content.content | b64decode)"
+        fail_msg: "sysctl does not have disable_ipv6 enabled"
+        success_msg: "sysctl has disable_ipv6 enabled"
+      tags:
+        - verify
+
+    - name: Assert sysctl has tcp_syncookies enabled
+      ansible.builtin.assert:
+        that:
+          - "'net.ipv4.tcp_syncookies = 1' in (sysctl_conf_content.content | b64decode)"
+        fail_msg: "sysctl does not have tcp_syncookies enabled"
+        success_msg: "sysctl has tcp_syncookies enabled"
+      tags:
+        - verify
+
+    # ============================================================
+    # 10. Verify SSH hardening configuration
+    # ============================================================
+    - name: Verify sshd_config exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/ssh/sshd_config
+      register: sshd_config_stat
+      tags:
+        - verify
+
+    - name: Assert sshd_config exists
+      ansible.builtin.assert:
+        that:
+          - sshd_config_stat.stat.exists
+        fail_msg: "sshd_config does not exist"
+        success_msg: "sshd_config exists"
+      tags:
+        - verify
+
+    - name: Verify sshd_config content
+      ansible.builtin.slurp:
+        src: /tmp/molecule_test/etc/ssh/sshd_config
+      register: sshd_config_content
+      tags:
+        - verify
+
+    - name: Assert sshd_config has PermitRootLogin no
+      ansible.builtin.assert:
+        that:
+          - "'PermitRootLogin no' in (sshd_config_content.content | b64decode)"
+        fail_msg: "sshd_config does not have PermitRootLogin no"
+        success_msg: "sshd_config has PermitRootLogin no"
+      tags:
+        - verify
+
+    - name: Assert sshd_config has PasswordAuthentication no
+      ansible.builtin.assert:
+        that:
+          - "'PasswordAuthentication no' in (sshd_config_content.content | b64decode)"
+        fail_msg: "sshd_config does not have PasswordAuthentication no"
+        success_msg: "sshd_config has PasswordAuthentication no"
+      tags:
+        - verify
+
+    # ============================================================
+    # 11. Verify SSL certificates exist
+    # ============================================================
+    - name: Verify test.cluster.local SSL certificate exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/ssl/certs/test.cluster.local.crt
+      register: test_cert_stat
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local SSL certificate exists
+      ansible.builtin.assert:
+        that:
+          - test_cert_stat.stat.exists
+        fail_msg: "test.cluster.local SSL certificate does not exist"
+        success_msg: "test.cluster.local SSL certificate exists"
+      tags:
+        - verify
+
+    - name: Verify ci.cluster.local SSL certificate exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/ssl/certs/ci.cluster.local.crt
+      register: ci_cert_stat
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local SSL certificate exists
+      ansible.builtin.assert:
+        that:
+          - ci_cert_stat.stat.exists
+        fail_msg: "ci.cluster.local SSL certificate does not exist"
+        success_msg: "ci.cluster.local SSL certificate exists"
+      tags:
+        - verify
+
+    - name: Verify status.cluster.local SSL certificate exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/ssl/certs/status.cluster.local.crt
+      register: status_cert_stat
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local SSL certificate exists
+      ansible.builtin.assert:
+        that:
+          - status_cert_stat.stat.exists
+        fail_msg: "status.cluster.local SSL certificate does not exist"
+        success_msg: "status.cluster.local SSL certificate exists"
+      tags:
+        - verify
+
+    - name: Verify test.cluster.local SSL private key exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/ssl/private/test.cluster.local.key
+      register: test_key_stat
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local SSL private key exists
+      ansible.builtin.assert:
+        that:
+          - test_key_stat.stat.exists
+        fail_msg: "test.cluster.local SSL private key does not exist"
+        success_msg: "test.cluster.local SSL private key exists"
+      tags:
+        - verify
+
+    - name: Verify ci.cluster.local SSL private key exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/ssl/private/ci.cluster.local.key
+      register: ci_key_stat
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local SSL private key exists
+      ansible.builtin.assert:
+        that:
+          - ci_key_stat.stat.exists
+        fail_msg: "ci.cluster.local SSL private key does not exist"
+        success_msg: "ci.cluster.local SSL private key exists"
+      tags:
+        - verify
+
+    - name: Verify status.cluster.local SSL private key exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/ssl/private/status.cluster.local.key
+      register: status_key_stat
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local SSL private key exists
+      ansible.builtin.assert:
+        that:
+          - status_key_stat.stat.exists
+        fail_msg: "status.cluster.local SSL private key does not exist"
+        success_msg: "status.cluster.local SSL private key exists"
+      tags:
+        - verify
+
+    # ============================================================
+    # 12. Verify SSL directory permissions
+    # ============================================================
+    - name: Verify SSL certificate directory permissions
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/ssl/certs
+      register: ssl_cert_dir_stat
+      tags:
+        - verify
+
+    - name: Assert SSL certificate directory has correct permissions
+      ansible.builtin.assert:
+        that:
+          - ssl_cert_dir_stat.stat.mode == '0755'
+        fail_msg: "SSL certificate directory has incorrect permissions"
+        success_msg: "SSL certificate directory has correct permissions"
+      tags:
+        - verify
+
+    - name: Verify SSL private key directory permissions
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/ssl/private
+      register: ssl_key_dir_stat
+      tags:
+        - verify
+
+    - name: Assert SSL private key directory has correct permissions
+      ansible.builtin.assert:
+        that:
+          - ssl_key_dir_stat.stat.mode == '0710'
+        fail_msg: "SSL private key directory has incorrect permissions"
+        success_msg: "SSL private key directory has correct permissions"
+      tags:
+        - verify
+
+    # ============================================================
+    # 13. Verify SSL private key file permissions
+    # ============================================================
+    - name: Verify test.cluster.local SSL key permissions
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/ssl/private/test.cluster.local.key
+      register: test_key_perms_stat
+      tags:
+        - verify
+
+    - name: Assert test.cluster.local SSL key has correct permissions
+      ansible.builtin.assert:
+        that:
+          - test_key_perms_stat.stat.mode == '0640'
+        fail_msg: "test.cluster.local SSL key has incorrect permissions"
+        success_msg: "test.cluster.local SSL key has correct permissions"
+      tags:
+        - verify
+
+    - name: Verify ci.cluster.local SSL key permissions
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/ssl/private/ci.cluster.local.key
+      register: ci_key_perms_stat
+      tags:
+        - verify
+
+    - name: Assert ci.cluster.local SSL key has correct permissions
+      ansible.builtin.assert:
+        that:
+          - ci_key_perms_stat.stat.mode == '0640'
+        fail_msg: "ci.cluster.local SSL key has incorrect permissions"
+        success_msg: "ci.cluster.local SSL key has correct permissions"
+      tags:
+        - verify
+
+    - name: Verify status.cluster.local SSL key permissions
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/ssl/private/status.cluster.local.key
+      register: status_key_perms_stat
+      tags:
+        - verify
+
+    - name: Assert status.cluster.local SSL key has correct permissions
+      ansible.builtin.assert:
+        that:
+          - status_key_perms_stat.stat.mode == '0640'
+        fail_msg: "status.cluster.local SSL key has incorrect permissions"
+        success_msg: "status.cluster.local SSL key has correct permissions"
+      tags:
+        - verify
+
+    # ============================================================
+    # 14. Verify document root directories exist
+    # ============================================================
+    - name: Verify test document root exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/opt/server/test
+      register: test_docroot_stat
+      tags:
+        - verify
+
+    - name: Assert test document root exists
+      ansible.builtin.assert:
+        that:
+          - test_docroot_stat.stat.exists
+          - test_docroot_stat.stat.isdir
+        fail_msg: "test document root does not exist or is not a directory"
+        success_msg: "test document root exists"
+      tags:
+        - verify
+
+    - name: Verify ci document root exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/opt/server/ci
+      register: ci_docroot_stat
+      tags:
+        - verify
+
+    - name: Assert ci document root exists
+      ansible.builtin.assert:
+        that:
+          - ci_docroot_stat.stat.exists
+          - ci_docroot_stat.stat.isdir
+        fail_msg: "ci document root does not exist or is not a directory"
+        success_msg: "ci document root exists"
+      tags:
+        - verify
+
+    - name: Verify status document root exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/opt/server/status
+      register: status_docroot_stat
+      tags:
+        - verify
+
+    - name: Assert status document root exists
+      ansible.builtin.assert:
+        that:
+          - status_docroot_stat.stat.exists
+          - status_docroot_stat.stat.isdir
+        fail_msg: "status document root does not exist or is not a directory"
+        success_msg: "status document root exists"
+      tags:
+        - verify
+
+    # ============================================================
+    # 15. Verify document root permissions
+    # ============================================================
+    - name: Verify test document root permissions
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/opt/server/test
+      register: test_docroot_perms_stat
+      tags:
+        - verify
+
+    - name: Assert test document root has correct permissions
+      ansible.builtin.assert:
+        that:
+          - test_docroot_perms_stat.stat.mode == '0755'
+        fail_msg: "test document root has incorrect permissions"
+        success_msg: "test document root has correct permissions"
+      tags:
+        - verify
+
+    - name: Verify ci document root permissions
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/opt/server/ci
+      register: ci_docroot_perms_stat
+      tags:
+        - verify
+
+    - name: Assert ci document root has correct permissions
+      ansible.builtin.assert:
+        that:
+          - ci_docroot_perms_stat.stat.mode == '0755'
+        fail_msg: "ci document root has incorrect permissions"
+        success_msg: "ci document root has correct permissions"
+      tags:
+        - verify
+
+    - name: Verify status document root permissions
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/opt/server/status
+      register: status_docroot_perms_stat
+      tags:
+        - verify
+
+    - name: Assert status document root has correct permissions
+      ansible.builtin.assert:
+        that:
+          - status_docroot_perms_stat.stat.mode == '0755'
+        fail_msg: "status document root has incorrect permissions"
+        success_msg: "status document root has correct permissions"
+      tags:
+        - verify
+
+    # ============================================================
+    # 16. Verify index.html files exist and have correct content
+    # ============================================================
+    - name: Verify test index.html exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/opt/server/test/index.html
+      register: test_index_stat
+      tags:
+        - verify
+
+    - name: Assert test index.html exists
+      ansible.builtin.assert:
+        that:
+          - test_index_stat.stat.exists
+        fail_msg: "test index.html does not exist"
+        success_msg: "test index.html exists"
+      tags:
+        - verify
+
+    - name: Verify test index.html content
+      ansible.builtin.slurp:
+        src: /tmp/molecule_test/opt/server/test/index.html
+      register: test_index_content
+      tags:
+        - verify
+
+    - name: Assert test index.html has correct title
+      ansible.builtin.assert:
+        that:
+          - "'Test Environment' in (test_index_content.content | b64decode)"
+          - "'test.cluster.local' in (test_index_content.content | b64decode)"
+        fail_msg: "test index.html has incorrect content"
+        success_msg: "test index.html has correct content"
+      tags:
+        - verify
+
+    - name: Verify ci index.html exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/opt/server/ci/index.html
+      register: ci_index_stat
+      tags:
+        - verify
+
+    - name: Assert ci index.html exists
+      ansible.builtin.assert:
+        that:
+          - ci_index_stat.stat.exists
+        fail_msg: "ci index.html does not exist"
+        success_msg: "ci index.html exists"
+      tags:
+        - verify
+
+    - name: Verify ci index.html content
+      ansible.builtin.slurp:
+        src: /tmp/molecule_test/opt/server/ci/index.html
+      register: ci_index_content
+      tags:
+        - verify
+
+    - name: Assert ci index.html has correct title
+      ansible.builtin.assert:
+        that:
+          - "'CI/CD Dashboard' in (ci_index_content.content | b64decode)"
+          - "'ci.cluster.local' in (ci_index_content.content | b64decode)"
+        fail_msg: "ci index.html has incorrect content"
+        success_msg: "ci index.html has correct content"
+      tags:
+        - verify
+
+    - name: Verify status index.html exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/opt/server/status/index.html
+      register: status_index_stat
+      tags:
+        - verify
+
+    - name: Assert status index.html exists
+      ansible.builtin.assert:
+        that:
+          - status_index_stat.stat.exists
+        fail_msg: "status index.html does not exist"
+        success_msg: "status index.html exists"
+      tags:
+        - verify
+
+    - name: Verify status index.html content
+      ansible.builtin.slurp:
+        src: /tmp/molecule_test/opt/server/status/index.html
+      register: status_index_content
+      tags:
+        - verify
+
+    - name: Assert status index.html has correct title
+      ansible.builtin.assert:
+        that:
+          - "'System Status' in (status_index_content.content | b64decode)"
+          - "'status.cluster.local' in (status_index_content.content | b64decode)"
+        fail_msg: "status index.html has incorrect content"
+        success_msg: "status index.html has correct content"
+      tags:
+        - verify
+
+    # ============================================================
+    # 17. Verify nginx log files exist
+    # ============================================================
+    - name: Verify test access log exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/var/log/nginx/test.cluster.local_access.log
+      register: test_access_log_stat
+      tags:
+        - verify
+
+    - name: Assert test access log exists
+      ansible.builtin.assert:
+        that:
+          - test_access_log_stat.stat.exists
+        fail_msg: "test access log does not exist"
+        success_msg: "test access log exists"
+      tags:
+        - verify
+
+    - name: Verify test error log exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/var/log/nginx/test.cluster.local_error.log
+      register: test_error_log_stat
+      tags:
+        - verify
+
+    - name: Assert test error log exists
+      ansible.builtin.assert:
+        that:
+          - test_error_log_stat.stat.exists
+        fail_msg: "test error log does not exist"
+        success_msg: "test error log exists"
+      tags:
+        - verify
+
+    - name: Verify ci access log exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/var/log/nginx/ci.cluster.local_access.log
+      register: ci_access_log_stat
+      tags:
+        - verify
+
+    - name: Assert ci access log exists
+      ansible.builtin.assert:
+        that:
+          - ci_access_log_stat.stat.exists
+        fail_msg: "ci access log does not exist"
+        success_msg: "ci access log exists"
+      tags:
+        - verify
+
+    - name: Verify ci error log exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/var/log/nginx/ci.cluster.local_error.log
+      register: ci_error_log_stat
+      tags:
+        - verify
+
+    - name: Assert ci error log exists
+      ansible.builtin.assert:
+        that:
+          - ci_error_log_stat.stat.exists
+        fail_msg: "ci error log does not exist"
+        success_msg: "ci error log exists"
+      tags:
+        - verify
+
+    - name: Verify status access log exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/var/log/nginx/status.cluster.local_access.log
+      register: status_access_log_stat
+      tags:
+        - verify
+
+    - name: Assert status access log exists
+      ansible.builtin.assert:
+        that:
+          - status_access_log_stat.stat.exists
+        fail_msg: "status access log does not exist"
+        success_msg: "status access log exists"
+      tags:
+        - verify
+
+    - name: Verify status error log exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/var/log/nginx/status.cluster.local_error.log
+      register: status_error_log_stat
+      tags:
+        - verify
+
+    - name: Assert status error log exists
+      ansible.builtin.assert:
+        that:
+          - status_error_log_stat.stat.exists
+        fail_msg: "status error log does not exist"
+        success_msg: "status error log exists"
+      tags:
+        - verify
+
+    # ============================================================
+    # 18. Verify nginx service is running (container-safe)
+    # ============================================================
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+      tags:
+        - verify
+
+    - name: Assert nginx service is running
+      ansible.builtin.assert:
+        that:
+          - "ansible_facts.services['nginx'].state == 'running'"
+          - "ansible_facts.services['nginx'].status == 'enabled'"
+        fail_msg: "nginx service is not running or not enabled"
+        success_msg: "nginx service is running and enabled"
+      tags:
+        - verify
+
+    # ============================================================
+    # 19. Verify fail2ban service is running (container-safe)
+    # ============================================================
+    - name: Assert fail2ban service is running
+      ansible.builtin.assert:
+        that:
+          - "ansible_facts.services['fail2ban'].state == 'running'"
+          - "ansible_facts.services['fail2ban'].status == 'enabled'"
+        fail_msg: "fail2ban service is not running or not enabled"
+        success_msg: "fail2ban service is running and enabled"
+      tags:
+        - verify
+
+    # ============================================================
+    # 20. Verify HTTP redirect to HTTPS (container-safe)
+    # ============================================================
+    - name: Check HTTP redirect for test.cluster.local
+      ansible.builtin.uri:
+        url: "http://test.cluster.local"
+        method: GET
+        status_code: 301
+        validate_certs: false
+        timeout: 5
+      register: http_redirect_test
+      ignore_errors: true
+      tags:
+        - molecule-notest
+
+    - name: Assert HTTP redirect for test.cluster.local
+      ansible.builtin.assert:
+        that:
+          - http_redirect_test is not failed
+          - http_redirect_test.status == 301
+        fail_msg: "HTTP redirect for test.cluster.local is not working"
+        success_msg: "HTTP redirect for test.cluster.local is working"
+      when: http_redirect_test is not failed
+      tags:
+        - molecule-notest
+
+    - name: Check HTTP redirect for ci.cluster.local
+      ansible.builtin.uri:
+        url: "http://ci.cluster.local"
+        method: GET
+        status_code: 301
+        validate_certs: false
+        timeout: 5
+      register: http_redirect_ci
+      ignore_errors: true
+      tags:
+        - molecule-notest
+
+    - name: Assert HTTP redirect for ci.cluster.local
+      ansible.builtin.assert:
+        that:
+          - http_redirect_ci is not failed
+          - http_redirect_ci.status == 301
+        fail_msg: "HTTP redirect for ci.cluster.local is not working"
+        success_msg: "HTTP redirect for ci.cluster.local is working"
+      when: http_redirect_ci is not failed
+      tags:
+        - molecule-notest
+
+    - name: Check HTTP redirect for status.cluster.local
+      ansible.builtin.uri:
+        url: "http://status.cluster.local"
+        method: GET
+        status_code: 301
+        validate_certs: false
+        timeout: 5
+      register: http_redirect_status
+      ignore_errors: true
+      tags:
+        - molecule-notest
+
+    - name: Assert HTTP redirect for status.cluster.local
+      ansible.builtin.assert:
+        that:
+          - http_redirect_status is not failed
+          - http_redirect_status.status == 301
+        fail_msg: "HTTP redirect for status.cluster.local is not working"
+        success_msg: "HTTP redirect for status.cluster.local is working"
+      when: http_redirect_status is not failed
+      tags:
+        - molecule-notest
+
+    # ============================================================
+    # 21. Verify HTTPS access to each site (container-safe)
+    # ============================================================
+    - name: Check HTTPS access for test.cluster.local
+      ansible.builtin.uri:
+        url: "https://test.cluster.local"
+        method: GET
+        status_code: 200
+        validate_certs: false
+        timeout: 5
+      register: https_test
+      ignore_errors: true
+      tags:
+        - molecule-notest
+
+    - name: Assert HTTPS access for test.cluster.local
+      ansible.builtin.assert:
+        that:
+          - https_test is not failed
+          - https_test.status == 200
+        fail_msg: "HTTPS access for test.cluster.local is not working"
+        success_msg: "HTTPS access for test.cluster.local is working"
+      when: https_test is not failed
+      tags:
+        - molecule-notest
+
+    - name: Check HTTPS access for ci.cluster.local
+      ansible.builtin.uri:
+        url: "https://ci.cluster.local"
+        method: GET
+        status_code: 200
+        validate_certs: false
+        timeout: 5
+      register: https_ci
+      ignore_errors: true
+      tags:
+        - molecule-notest
+
+    - name: Assert HTTPS access for ci.cluster.local
+      ansible.builtin.assert:
+        that:
+          - https_ci is not failed
+          - https_ci.status == 200
+        fail_msg: "HTTPS access for ci.cluster.local is not working"
+        success_msg: "HTTPS access for ci.cluster.local is working"
+      when: https_ci is not failed
+      tags:
+        - molecule-notest
+
+    - name: Check HTTPS access for status.cluster.local
+      ansible.builtin.uri:
+        url: "https://status.cluster.local"
+        method: GET
+        status_code: 200
+        validate_certs: false
+        timeout: 5
+      register: https_status
+      ignore_errors: true
+      tags:
+        - molecule-notest
+
+    - name: Assert HTTPS access for status.cluster.local
+      ansible.builtin.assert:
+        that:
+          - https_status is not failed
+          - https_status.status == 200
+        fail_msg: "HTTPS access for status.cluster.local is not working"
+        success_msg: "HTTPS access for status.cluster.local is working"
+      when: https_status is not failed
+      tags:
+        - molecule-notest
+
+    # ============================================================
+    # 22. Verify UFW configuration (container-safe)
+    # ============================================================
+    - name: Check UFW status
+      ansible.builtin.command:
+        cmd: ufw status
+      register: ufw_status
+      changed_when: false
+      tags:
+        - molecule-notest
+
+    - name: Assert UFW is active
+      ansible.builtin.assert:
+        that:
+          - "'Status: active' in ufw_status.stdout"
+        fail_msg: "UFW is not active"
+        success_msg: "UFW is active"
+      tags:
+        - molecule-notest
+
+    - name: Verify UFW allows SSH
+      ansible.builtin.assert:
+        that:
+          - "'22/tcp' in ufw_status.stdout"
+        fail_msg: "UFW does not allow SSH"
+        success_msg: "UFW allows SSH"
+      tags:
+        - molecule-notest
+
+    - name: Verify UFW allows HTTP
+      ansible.builtin.assert:
+        that:
+          - '80/tcp' in ufw_status.stdout
+        fail_msg: "UFW does not allow HTTP"
+        success_msg: "UFW allows HTTP"
+      tags:
+        - molecule-notest
+
+    - name: Verify UFW allows HTTPS
+      ansible.builtin.assert:
+        that:
+          - '443/tcp' in ufw_status.stdout
+        fail_msg: "UFW does not allow HTTPS"
+        success_msg: "UFW allows HTTPS"
+      tags:
+        - molecule-notest

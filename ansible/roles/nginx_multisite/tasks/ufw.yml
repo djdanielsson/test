@@ -1,0 +1,29 @@
+- name: Install UFW
+  ansible.builtin.package:
+    name: ufw
+    state: present
+  when: ufw_enabled
+  tags:
+  - ufw
+- name: Set UFW default policy
+  ansible.builtin.command:
+    cmd: ufw default {{ ufw_default_policy }} incoming
+  when: ufw_enabled
+  changed_when: false
+  tags:
+  - ufw
+- name: Configure UFW rules
+  ansible.builtin.command:
+    cmd: ufw allow {{ item.port }}/tcp comment '{{ item.comment }}'
+  loop: '{{ ufw_rules }}'
+  when: ufw_enabled
+  changed_when: false
+  tags:
+  - ufw
+- name: Enable UFW
+  ansible.builtin.command:
+    cmd: ufw --force enable
+  when: ufw_enabled
+  changed_when: false
+  tags:
+  - ufw

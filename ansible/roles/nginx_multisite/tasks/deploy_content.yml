@@ -1,0 +1,43 @@
+- name: Create document root directories
+  ansible.builtin.file:
+    path: '{{ item.document_root }}'
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  loop: '{{ sites }}'
+  tags:
+  - deploy
+- name: Deploy test environment content
+  ansible.builtin.copy:
+    src: default/test/index.html
+    dest: '{{ item.document_root }}/index.html'
+    owner: www-data
+    group: www-data
+    mode: '0644'
+  loop: '{{ sites }}'
+  when: item.name == 'test'
+  tags:
+  - deploy
+- name: Deploy CI/CD environment content
+  ansible.builtin.copy:
+    src: default/ci/index.html
+    dest: '{{ item.document_root }}/index.html'
+    owner: www-data
+    group: www-data
+    mode: '0644'
+  loop: '{{ sites }}'
+  when: item.name == 'ci'
+  tags:
+  - deploy
+- name: Deploy status environment content
+  ansible.builtin.copy:
+    src: default/status/index.html
+    dest: '{{ item.document_root }}/index.html'
+    owner: www-data
+    group: www-data
+    mode: '0644'
+  loop: '{{ sites }}'
+  when: item.name == 'status'
+  tags:
+  - deploy

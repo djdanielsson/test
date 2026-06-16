@@ -1,0 +1,92 @@
+sites:
+- name: test
+  server_name: test.cluster.local
+  document_root: /opt/server/test
+  ssl_enabled: true
+  cert_file: /etc/ssl/certs/test.cluster.local.crt
+  key_file: /etc/ssl/private/test.cluster.local.key
+- name: ci
+  server_name: ci.cluster.local
+  document_root: /opt/server/ci
+  ssl_enabled: true
+  cert_file: /etc/ssl/certs/ci.cluster.local.crt
+  key_file: /etc/ssl/private/ci.cluster.local.key
+- name: status
+  server_name: status.cluster.local
+  document_root: /opt/server/status
+  ssl_enabled: true
+  cert_file: /etc/ssl/certs/status.cluster.local.crt
+  key_file: /etc/ssl/private/status.cluster.local.key
+nginx_worker_processes: auto
+nginx_worker_connections: 768
+nginx_keepalive_timeout: 65
+ssl_protocols: TLSv1.2 TLSv1.3
+ssl_ciphers: ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384
+ssl_prefer_server_ciphers: true
+nginx_ssl_certificate_path: /etc/ssl/certs
+nginx_ssl_private_key_path: /etc/ssl/private
+fail2ban_enabled: true
+fail2ban_bantime: 3600
+fail2ban_findtime: 600
+fail2ban_maxretry: 3
+security_hardening_enabled: true
+sysctl_config:
+  net.ipv4.conf.default.rp_filter: 1
+  net.ipv4.conf.all.rp_filter: 1
+  net.ipv4.conf.all.accept_redirects: 0
+  net.ipv6.conf.all.accept_redirects: 0
+  net.ipv4.conf.default.accept_redirects: 0
+  net.ipv6.conf.default.accept_redirects: 0
+  net.ipv4.conf.all.send_redirects: 0
+  net.ipv4.conf.default.send_redirects: 0
+  net.ipv4.conf.all.accept_source_route: 0
+  net.ipv6.conf.all.accept_source_route: 0
+  net.ipv4.conf.default.accept_source_route: 0
+  net.ipv6.conf.default.accept_source_route: 0
+  net.ipv4.conf.all.log_martians: 1
+  net.ipv4.conf.default.log_martians: 1
+  net.ipv4.icmp_echo_ignore_all: 1
+  net.ipv4.icmp_echo_ignore_broadcasts: 1
+  net.ipv6.conf.all.disable_ipv6: 1
+  net.ipv6.conf.default.disable_ipv6: 1
+  net.ipv6.conf.lo.disable_ipv6: 1
+  net.ipv4.tcp_syncookies: 1
+  net.ipv4.tcp_max_syn_backlog: 2048
+  net.ipv4.tcp_synack_retries: 2
+  net.ipv4.tcp_syn_retries: 5
+nginx_packages:
+  Debian:
+  - nginx
+  - nginx-common
+  - nginx-core
+  RedHat:
+  - nginx
+fail2ban_packages:
+  Debian:
+  - fail2ban
+  - fail2ban-systemd
+  RedHat:
+  - fail2ban
+ssl_packages:
+  Debian:
+  - openssl
+  - ca-certificates
+  RedHat:
+  - openssl
+  - ca-certificates
+ufw_enabled: true
+ufw_default_policy: deny
+ufw_rules:
+- port: 22
+  proto: tcp
+  comment: SSH
+- port: 80
+  proto: tcp
+  comment: HTTP
+- port: 443
+  proto: tcp
+  comment: HTTPS
+document_root_content:
+  test: test
+  ci: ci
+  status: status
