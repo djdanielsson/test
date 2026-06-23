@@ -1,21 +1,23 @@
+---
 - name: Install nginx packages
   ansible.builtin.package:
-    name: '{{ nginx_packages[ansible_facts[''os_family'']] }}'
+    name: "{{ nginx_packages[ansible_facts['os_family']] }}"
     state: present
   when: nginx_packages[ansible_facts['os_family']] is defined
   tags:
-  - install
-- name: Install fail2ban packages
+    - install
+
+- name: fail2ban | Install fail2ban packages
   ansible.builtin.package:
-    name: '{{ fail2ban_packages[ansible_facts[''os_family'']] }}'
+    name: "{{ fail2ban_packages[ansible_facts['os_family']] }}"
     state: present
   when: fail2ban_packages[ansible_facts['os_family']] is defined
   tags:
-  - install
-- name: Install SSL packages
+    - install
+- name: ssl | Install SSL packages
   ansible.builtin.package:
-    name: '{{ ssl_packages[ansible_facts[''os_family'']] }}'
+    name: "{{ ssl_packages[ansible_facts['os_family']] }}"
     state: present
   when: ssl_packages[ansible_facts['os_family']] is defined
   tags:
-  - install
+    - install

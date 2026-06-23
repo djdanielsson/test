@@ -1,50 +1,54 @@
+---
 - name: Install SSL packages (openssl, ca-certificates)
   ansible.builtin.package:
     name:
-    - openssl
-    - ca-certificates
+      - openssl
+      - ca-certificates
     state: present
+
 - name: Create ssl-cert system group
   ansible.builtin.group:
     name: ssl-cert
     state: present
-- name: Create SSL certificate directory
+
+- name: sub | Create SSL certificate directory
   ansible.builtin.file:
-    path: '{{ nginx_ssl_certificate_path }}'
+    path: "{{ nginx_ssl_certificate_path }}"
     state: directory
     owner: root
     group: root
-    mode: '0755'
-- name: Create SSL private key directory
+    mode: "0755"
+  # noqa: R114
+- name: sub | Create SSL private key directory
   ansible.builtin.file:
-    path: '{{ nginx_ssl_private_key_path }}'
+    path: "{{ nginx_ssl_private_key_path }}"
     state: directory
     owner: root
     group: ssl-cert
-    mode: '0710'
-- name: Generate self-signed SSL certificate
+    mode: "0710"
+- name: sub | Generate self-signed SSL certificate
   ansible.builtin.command:
-    cmd: 'openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout {{ key_file }} -out {{ cert_file }} -subj "/C=US/ST=Example/L=Example/O=Example Org/OU=IT/CN={{
-      item.key }}/emailAddress=admin@example.com"
-
-      '
-    creates: '{{ cert_file }}'
-  loop: '{{ nginx_sites | dict2items }}'
+    cmd: "openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout {{ key_file }} -out {{ cert_file }} -subj \"/C=US/ST=Example/L=Example/O=Example Org/OU=IT/CN={{ item_site['key'] }}/emailAddress=admin@example.com\"\n"
+    creates: "{{ cert_file }}"
+  when: item_site['value']['ssl_enabled'] | default(false) | bool
+  loop: "{{ nginx_sites | dict2items }}"
   loop_control:
-    label: '{{ item.key }}'
-  vars:
-    cert_file: '{{ nginx_ssl_certificate_path }}/{{ item.key }}.crt'
-    key_file: '{{ nginx_ssl_private_key_path }}/{{ item.key }}.key'
-  when: item.value.ssl_enabled | default(false) | bool
+    label: "{{ item_site['key'] }}"
+    loop_var: item_site
   notify: reload nginx
-- name: Set SSL private key permissions
+  vars:
+    cert_file: "{{ nginx_ssl_certificate_path }}/{{ item_site['key'] }}.crt" # noqa: L039
+    key_file: "{{ nginx_ssl_private_key_path }}/{{ item_site['key'] }}.key" # noqa: L039
+- name: sub | Set SSL private key permissions
   ansible.builtin.file:
-    path: '{{ nginx_ssl_private_key_path }}/{{ item.key }}.key'
-    mode: '0640'
+    path: "{{ nginx_ssl_private_key_path }}/{{ item_site['key'] }}.key"
+    state: file
+    mode: "0640"
     owner: root
     group: ssl-cert
-  loop: '{{ nginx_sites | dict2items }}'
+  when: item_site['value']['ssl_enabled'] | default(false) | bool  # noqa: L039
+  loop: "{{ nginx_sites | dict2items }}"
   loop_control:
-    label: '{{ item.key }}'
-  when: item.value.ssl_enabled | default(false) | bool
+    loop_var: item_site
+    label: "{{ item_site['key'] }}"
   check_mode: false

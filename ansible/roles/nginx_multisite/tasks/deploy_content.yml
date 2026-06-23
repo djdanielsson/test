@@ -1,43 +1,55 @@
-- name: Create document root directories
+---
+- name: sub | Create document root directories
   ansible.builtin.file:
-    path: '{{ item.document_root }}'
+    path: "{{ item_site['document_root'] }}"
     state: directory
     owner: www-data
     group: www-data
-    mode: '0755'
-  loop: '{{ sites }}'
+    mode: "0755"
+  loop: "{{ sites }}"
+  loop_control:
+    loop_var: item_site
   tags:
-  - deploy
-- name: Deploy test environment content
+    - deploy
+- name: sub | Deploy test environment content
   ansible.builtin.copy:
-    src: default/test/index.html
-    dest: '{{ item.document_root }}/index.html'
+    src: files/default/test/index.html
+    dest: "{{ item_site['document_root'] }}/index.html"
     owner: www-data
     group: www-data
-    mode: '0644'
-  loop: '{{ sites }}'
-  when: item.name == 'test'
+    mode: "0644"
+    state: present # noqa: R114
+  when: item_site['name'] == 'test' # noqa: L039
+  loop: "{{ sites }}"
+  loop_control:
+    loop_var: item_site
   tags:
-  - deploy
-- name: Deploy CI/CD environment content
+    - deploy
+- name: sub | Deploy CI/CD environment content
   ansible.builtin.copy:
-    src: default/ci/index.html
-    dest: '{{ item.document_root }}/index.html'
+    src: files/default/ci/index.html
+    dest: "{{ item_site['document_root'] }}/index.html"
     owner: www-data
     group: www-data
-    mode: '0644'
-  loop: '{{ sites }}'
-  when: item.name == 'ci'
+    mode: "0644"
+    state: present # noqa: R114
+  when: item_site['name'] == 'ci'
+  loop: "{{ sites }}"
+  loop_control:
+    loop_var: item_site
   tags:
-  - deploy
-- name: Deploy status environment content
+    - deploy
+- name: sub | Deploy status environment content
   ansible.builtin.copy:
-    src: default/status/index.html
-    dest: '{{ item.document_root }}/index.html'
+    src: files/default/status/index.html
+    dest: "{{ item_site['document_root'] }}/index.html"
     owner: www-data
     group: www-data
-    mode: '0644'
-  loop: '{{ sites }}'
-  when: item.name == 'status'
+    mode: "0644"
+    state: present # noqa: R114
+  when: item_site['name'] == 'status'
+  loop: "{{ sites }}"
+  loop_control:
+    loop_var: item_site
   tags:
-  - deploy
+    - deploy

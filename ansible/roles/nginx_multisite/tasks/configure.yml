@@ -1,45 +1,46 @@
-- name: Deploy nginx configuration
+---
+- name: nginx | Deploy nginx configuration # noqa: L044
   ansible.builtin.template:
     src: nginx.conf.j2
     dest: /etc/nginx/nginx.conf
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
     backup: true
   notify:
-  - restart nginx
+    - restart nginx
   tags:
-  - configure
-- name: Deploy security configuration
+    - configure
+- name: sub | Deploy security configuration
   ansible.builtin.template:
     src: security.conf.j2
     dest: /etc/nginx/conf.d/security.conf
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
     backup: true
   notify:
-  - restart nginx
+    - restart nginx
   tags:
-  - configure
-- name: Deploy fail2ban jail configuration
+    - configure
+- name: sub | Deploy fail2ban jail configuration
   ansible.builtin.template:
     src: fail2ban.jail.local.j2
     dest: /etc/fail2ban/jail.local
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
     backup: true
+  when: fail2ban_enabled | bool
   notify:
-  - restart fail2ban
-  when: fail2ban_enabled
+    - restart fail2ban
   tags:
-  - configure
-- name: Ensure fail2ban is enabled and running
+    - configure
+- name: sub | Ensure fail2ban is enabled and running
   ansible.builtin.service:
     name: fail2ban
     state: started
     enabled: true
-  when: fail2ban_enabled
+  when: fail2ban_enabled | bool
   tags:
-  - configure
+    - configure

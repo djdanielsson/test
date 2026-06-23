@@ -1,53 +1,66 @@
+---
 - name: Install nginx packages
   ansible.builtin.package:
-    name: '{{ nginx_packages[ansible_facts[''os_family'']] }}'
+    name: "{{ nginx_packages[ansible_facts['os_family']] }}"
     state: present
   when: ansible_facts['os_family'] in nginx_packages
+
 - name: Create nginx configuration directories
   ansible.builtin.file:
-    path: '{{ item }}'
+    path: "{{ item_dir }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
   loop:
-  - /etc/nginx
-  - /etc/nginx/conf.d
-  - /etc/nginx/sites-available
-  - /etc/nginx/sites-enabled
-- name: Deploy nginx main configuration
+    - /etc/nginx
+    - /etc/nginx/conf.d
+    - /etc/nginx/sites-available
+    - /etc/nginx/sites-enabled
+  loop_control:
+    loop_var: item_dir # noqa: var-naming[no-role-prefix]
+- name: sub | Deploy nginx main configuration
   ansible.builtin.template:
     src: nginx.conf.j2
     dest: /etc/nginx/nginx.conf
-    mode: '0644'
+    mode: "0644"
     validate: nginx -t -c %s
   notify: reload nginx
-- name: Deploy nginx security configuration
+- name: sub | Deploy nginx security configuration
   ansible.builtin.template:
     src: security.conf.j2
     dest: /etc/nginx/conf.d/security.conf
-    mode: '0644'
+    mode: "0644"
   notify: reload nginx
-- name: Create document root directories
+- name: Sub | Create document root directories
   ansible.builtin.file:
-    path: '{{ item.document_root }}'
+    path: "{{ item_site['document_root'] }}"
     state: directory
     owner: www-data
     group: www-data
-    mode: '0755'
-  loop: '{{ sites }}'
-- name: Deploy static index.html files
+    mode: "0755"
+  loop: "{{ sites }}"
+  loop_control:
+    loop_var: item_site
+  when: item_site is defined
+- name: sub | Deploy static index.html files
   ansible.builtin.copy:
-    src: '{{ item.name }}/index.html'
-    dest: '{{ item.document_root }}/index.html'
+    src: "files/{{ item_site['name'] }}/index.html"
+    dest: "{{ item_site['document_root'] }}/index.html"
     owner: www-data
     group: www-data
-    mode: '0644'
-  loop: '{{ sites }}'
-  when: item.name in document_root_content
-- name: Remove default site configuration
+    mode: "0644"
+    state: present # noqa: R114
+  when: item_site['name'] in document_root_content
+  loop: "{{ sites }}"
+  loop_control:
+    loop_var: item_site
+  vars:
+    item_site: "{{ item_site }}"
+- name: sub | Remove default site configuration
   ansible.builtin.file:
     path: /etc/nginx/sites-enabled/default
     state: absent
-- name: Start and enable nginx
+    mode: "0644"
+- name: sub | Start and enable nginx
   ansible.builtin.service:
     name: nginx
     state: started

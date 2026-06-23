@@ -1,41 +1,48 @@
-- name: Create sites-available directory
+---
+- name: sub | Create sites-available directory
   ansible.builtin.file:
     path: /etc/nginx/sites-available
     state: directory
     owner: root
     group: root
-    mode: '0755'
-- name: Create sites-enabled directory
+    mode: "0755"
+- name: sub | Create sites-enabled directory
   ansible.builtin.file:
     path: /etc/nginx/sites-enabled
     state: directory
     owner: root
     group: root
-    mode: '0755'
-- name: Deploy site configuration
+    mode: "0755"
+- name: sub | Deploy site configuration
   ansible.builtin.template:
     src: site.conf.j2
-    dest: /etc/nginx/sites-available/{{ item.name }}.conf
+    dest: /etc/nginx/sites-available/{{ item_site['name'] }}.conf
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
     backup: true
-  loop: '{{ sites }}'
+  loop: "{{ sites }}"
+  loop_control:
+    loop_var: item_site
   notify:
-  - reload nginx
+    - reload nginx
   tags:
-  - sites
-- name: Enable site configurations
+    - sites
+- name: sub | Enable site configurations
   ansible.builtin.file:
-    src: /etc/nginx/sites-available/{{ item.name }}.conf
-    dest: /etc/nginx/sites-enabled/{{ item.name }}.conf
+    src: /etc/nginx/sites-available/{{ item_site['name'] }}.conf
+    dest: /etc/nginx/sites-enabled/{{ item_site['name'] }}.conf
     state: link
-  loop: '{{ sites }}'
+    mode: "0644"
+  loop: "{{ sites }}"
+  loop_control:
+    loop_var: item_site
   tags:
-  - sites
-- name: Remove default site configuration
+    - sites
+- name: sub | Remove default site configuration
   ansible.builtin.file:
     path: /etc/nginx/sites-enabled/default
     state: absent
+    mode: "0644"
   tags:
-  - sites
+    - sites
